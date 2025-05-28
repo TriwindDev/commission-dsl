@@ -1,5 +1,5 @@
 import * as P from 'parsimmon';
-import { Rule, Condition, Calculation, Context, LineType } from './types';
+import { Rule, Condition, Calculation, Context, LineType, Operator } from './types';
 import { RuleValidator, ValidationError } from './validation';
 
 export class ParserError extends Error {
@@ -50,7 +50,7 @@ export class IndentedTreeParser {
         this.value
     ).map(([field, operator, value]: [string, string, string | number | boolean]): Condition => ({
         field,
-        operator,
+        operator: operator as Operator,
         value
     }));
 
