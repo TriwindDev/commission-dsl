@@ -100,17 +100,17 @@ export class RuleValidator {
     }
 
     private validateCondition(condition: Condition, index: number): void {
-        if (!this.validFields.includes(condition.field)) {
+        if (!RuleValidator.validFields.includes(condition.field)) {
             throw new ValidationError(
                 `Invalid field '${condition.field}' in condition ${index + 1}`,
-                { validFields: this.validFields }
+                { validFields: RuleValidator.validFields }
             );
         }
 
-        if (!this.validOperators.includes(condition.operator)) {
+        if (!RuleValidator.validOperators.includes(condition.operator)) {
             throw new ValidationError(
                 `Invalid operator '${condition.operator}' in condition ${index + 1}`,
-                { validOperators: this.validOperators }
+                { validOperators: RuleValidator.validOperators }
             );
         }
 
