@@ -1,7 +1,11 @@
+export type LineType = 'rule' | 'when' | 'then' | 'notes' | 'condition' | 'calculation' | 'note';
+
+export type Operator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'in';
+
 export interface Condition {
     field: string;
-    operator: string;
-    value: string | number | boolean;
+    operator: Operator;
+    value: string | number | boolean | (string | number | boolean)[];
 }
 
 export interface Calculation {
@@ -17,8 +21,7 @@ export interface Rule {
 }
 
 export interface Context {
-    [key: string]: string | number | boolean;
+    [key: string]: string | number | boolean | (string | number | boolean)[];
 }
 
-export type IndentLevel = number;
-export type LineType = 'rule' | 'when' | 'then' | 'notes' | 'condition' | 'calculation' | 'note'; 
+export type IndentLevel = number; 

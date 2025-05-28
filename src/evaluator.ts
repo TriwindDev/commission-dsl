@@ -1,6 +1,12 @@
 import { Rule, Condition, Context } from './types';
-import { ParserError } from './parser';
 import * as math from 'mathjs';
+
+export class EvaluatorError extends Error {
+    constructor(message: string, public details?: any) {
+        super(message);
+        this.name = 'EvaluatorError';
+    }
+}
 
 export class RuleEvaluator {
     private readonly mathScope: math.Scope;
@@ -43,7 +49,7 @@ export class RuleEvaluator {
             const expression = this.substituteVariables(rule.calculation.expression, context);
             return this.evaluateExpression(expression);
         } catch (error) {
-            throw new ParserError('Failed to evaluate rule', { 
+            throw new EvaluatorError('Failed to evaluate rule', { 
                 rule,
                 context,
                 originalError: error
@@ -58,7 +64,7 @@ export class RuleEvaluator {
     private evaluateCondition(condition: Condition, context: Context): boolean {
         const leftValue = context[condition.field];
         if (leftValue === undefined) {
-            throw new ParserError(`Missing required field '${condition.field}' in context`);
+            throw new EvaluatorError(`Missing required field '${condition.field}' in context`);
         }
 
         const rightValue = typeof condition.value === 'string' && context[condition.value] !== undefined
@@ -82,9 +88,9 @@ export class RuleEvaluator {
                 if (Array.isArray(rightValue)) {
                     return rightValue.includes(leftValue);
                 }
-                throw new ParserError(`Operator 'in' requires an array value`);
+                throw new EvaluatorError(`Operator 'in' requires an array value`);
             default:
-                throw new ParserError(`Invalid operator '${condition.operator}'`);
+                throw new EvaluatorError(`Invalid operator '${condition.operator}'`);
         }
     }
 
@@ -96,7 +102,7 @@ export class RuleEvaluator {
         return expression.replace(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g, match => {
             const value = context[match];
             if (value === undefined) {
-                throw new ParserError(`Missing required variable '${match}' in context`);
+                throw new EvaluatorError(`Missing required variable '${match}' in context`);
             }
             return String(value);
         });
@@ -114,7 +120,7 @@ export class RuleEvaluator {
             
             return result;
         } catch (error) {
-            throw new ParserError('Failed to evaluate expression', { 
+            throw new EvaluatorError('Failed to evaluate expression', { 
                 expression,
                 originalError: error
             });

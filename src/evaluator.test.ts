@@ -1,6 +1,5 @@
-import { RuleEvaluator } from './evaluator';
+import { RuleEvaluator, EvaluatorError } from './evaluator';
 import { Rule, Context } from './types';
-import { ParserError } from './parser';
 
 describe('RuleEvaluator', () => {
     const evaluator = new RuleEvaluator();
@@ -35,10 +34,10 @@ describe('RuleEvaluator', () => {
             expect(commission).toBe(0);
         });
 
-        it('should throw ParserError for missing context field', () => {
+        it('should throw EvaluatorError for missing context field', () => {
             const context: Context = {};
             expect(() => evaluator.evaluateRule(basicRule, context))
-                .toThrow(ParserError);
+                .toThrow(EvaluatorError);
         });
     });
 
@@ -121,7 +120,7 @@ describe('RuleEvaluator', () => {
             expect(commission).toBe(0);
         });
 
-        it('should throw ParserError for invalid array value', () => {
+        it('should throw EvaluatorError for invalid array value', () => {
             const invalidRule: Rule = {
                 ...arrayRule,
                 conditions: [{
@@ -135,7 +134,7 @@ describe('RuleEvaluator', () => {
                 sale_amount: 25000
             };
             expect(() => evaluator.evaluateRule(invalidRule, context))
-                .toThrow(ParserError);
+                .toThrow(EvaluatorError);
         });
     });
 
@@ -167,7 +166,7 @@ describe('RuleEvaluator', () => {
                 .toBe(850); // (15000 * 0.05) + 100
         });
 
-        it('should throw ParserError for invalid expressions', () => {
+        it('should throw EvaluatorError for invalid expressions', () => {
             const invalidRule: Rule = {
                 ...expressionRule,
                 calculation: {
@@ -178,7 +177,7 @@ describe('RuleEvaluator', () => {
                 sale_amount: 1000
             };
             expect(() => evaluator.evaluateRule(invalidRule, context))
-                .toThrow(ParserError);
+                .toThrow(EvaluatorError);
         });
     });
 
@@ -205,12 +204,12 @@ describe('RuleEvaluator', () => {
             expect(commission).toBe(70); // 1000 * 0.07
         });
 
-        it('should throw ParserError for missing variables', () => {
+        it('should throw EvaluatorError for missing variables', () => {
             const context: Context = {
                 sale_amount: 1000
             };
             expect(() => evaluator.evaluateRule(variableRule, context))
-                .toThrow(ParserError);
+                .toThrow(EvaluatorError);
         });
     });
 
