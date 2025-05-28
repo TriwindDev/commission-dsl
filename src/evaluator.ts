@@ -9,7 +9,7 @@ export class EvaluatorError extends Error {
 }
 
 export class RuleEvaluator {
-    private readonly mathScope: math.Scope;
+    private readonly mathScope: Record<string, any>;
 
     constructor() {
         // Initialize math scope with common functions and constants
@@ -86,7 +86,7 @@ export class RuleEvaluator {
                 return leftValue <= rightValue;
             case 'in':
                 if (Array.isArray(rightValue)) {
-                    return rightValue.includes(leftValue);
+                    return rightValue.includes(leftValue as string | number | boolean);
                 }
                 throw new EvaluatorError(`Operator 'in' requires an array value`);
             default:
