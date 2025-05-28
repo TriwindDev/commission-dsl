@@ -14,8 +14,11 @@ The Commission DSL allows you to define rules for calculating sales commissions 
 
 ```typescript
 import { IndentedTreeParser } from './src/parser';
+import { RuleEvaluator } from './src/evaluator';
 
+// Create parser and evaluator instances
 const parser = new IndentedTreeParser();
+const evaluator = new RuleEvaluator();
 
 // Define a rule
 const ruleText = `
@@ -36,9 +39,36 @@ const context = {
     sale_amount: 1000
 };
 
-const commission = parser.evaluateRule(rule, context);
-console.log(commission); // Output: 50
+// Option 1: Use the parser's evaluateRule method
+const commission1 = parser.evaluateRule(rule, context);
+
+// Option 2: Use the evaluator directly
+const commission2 = evaluator.evaluateRule(rule, context);
+
+console.log(commission1); // Output: 50
+console.log(commission2); // Output: 50
 ```
+
+## Architecture
+
+The DSL is split into three main components:
+
+1. **Parser** (`IndentedTreeParser`): Handles parsing of rule text into structured data
+   - Converts text into Rule objects
+   - Validates rule structure
+   - Provides error handling for parsing issues
+
+2. **Validator** (`RuleValidator`): Ensures rules are valid and well-formed
+   - Validates rule names, priorities, and structure
+   - Checks field and operator validity
+   - Ensures calculation expressions are valid
+   - Provides detailed validation error messages
+
+3. **Evaluator** (`RuleEvaluator`): Handles rule evaluation and calculation
+   - Evaluates conditions against context
+   - Substitutes variables in expressions
+   - Performs calculations
+   - Provides error handling for evaluation issues
 
 ## Rule Format
 
@@ -172,7 +202,7 @@ Category Bonus (3)
 
 ## Error Handling
 
-The DSL provides comprehensive error handling through two main error types:
+The DSL provides comprehensive error handling through three main error types:
 
 ### ValidationError
 
@@ -232,6 +262,7 @@ Common parser errors:
 - Comprehensive validation
 - Detailed error handling
 - Comprehensive test coverage
+- Modular architecture
 
 ## Development
 

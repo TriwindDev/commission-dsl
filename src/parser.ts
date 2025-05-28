@@ -9,6 +9,13 @@ export class ParserError extends Error {
     }
 }
 
+type RuleLine = { type: 'rule'; name: string; priority: number };
+type SectionLine = { type: 'when' | 'then' | 'notes' };
+type ConditionLine = { type: 'condition' } & Condition;
+type CalculationLine = { type: 'calculation' } & Calculation;
+type NoteLine = { type: 'note'; note: string };
+type ParsedLine = RuleLine | SectionLine | ConditionLine | CalculationLine | NoteLine;
+
 export class IndentedTreeParser {
     private static readonly whitespace = P.regexp(/\s*/);
     private static readonly newline = P.string('\n');
@@ -41,22 +48,22 @@ export class IndentedTreeParser {
         this.identifier.skip(this.whitespace),
         this.operator.skip(this.whitespace),
         this.value
-    ).map(([field, operator, value]) => ({
+    ).map(([field, operator, value]: [string, string, string | number | boolean]): Condition => ({
         field,
         operator,
         value
     }));
 
-    private static readonly calculation = P.regexp(/.*/).map(expr => ({
+    private static readonly calculation = P.regexp(/.*/).map((expr: string): Calculation => ({
         expression: expr.trim()
     }));
 
-    private static readonly note = P.regexp(/.*/).map(note => note.trim());
+    private static readonly note = P.regexp(/.*/).map((note: string) => note.trim());
 
     private static readonly ruleHeader = P.seq(
         this.identifier.skip(this.whitespace),
         this.priority
-    ).map(([name, priority]) => ({ name, priority }));
+    ).map(([name, priority]: [string, number]): { name: string; priority: number } => ({ name, priority }));
 
     private static readonly section = P.alt(
         P.string('When').result('when'),
@@ -67,11 +74,11 @@ export class IndentedTreeParser {
     private static readonly line = P.seq(
         this.indent.many(),
         P.alt(
-            this.ruleHeader.map(header => ({ type: 'rule' as LineType, ...header })),
-            this.section.map(section => ({ type: section as LineType })),
-            this.condition.map(condition => ({ type: 'condition' as LineType, ...condition })),
-            this.calculation.map(calc => ({ type: 'calculation' as LineType, ...calc })),
-            this.note.map(note => ({ type: 'note' as LineType, note }))
+            this.ruleHeader.map((header: { name: string; priority: number }): RuleLine => ({ type: 'rule', ...header })),
+            this.section.map((section: string): SectionLine => ({ type: section as 'when' | 'then' | 'notes' })),
+            this.condition.map((condition: Condition): ConditionLine => ({ type: 'condition', ...condition })),
+            this.calculation.map((calc: Calculation): CalculationLine => ({ type: 'calculation', ...calc })),
+            this.note.map((note: string): NoteLine => ({ type: 'note', note }))
         )
     );
 
@@ -84,7 +91,7 @@ export class IndentedTreeParser {
 
     public parseRule(ruleText: string): Rule {
         try {
-            const lines = this.parser.parse(ruleText);
+            const lines = IndentedTreeParser.parser.parse(ruleText);
             if (!lines.status) {
                 throw new ParserError(`Failed to parse rule: ${lines.expected.join(', ')}`);
             }
@@ -95,7 +102,7 @@ export class IndentedTreeParser {
             let calculation: Calculation | null = null;
             let notes: string[] = [];
 
-            for (const line of lines.value) {
+            for (const [_, line] of lines.value) {
                 switch (line.type) {
                     case 'rule':
                         currentRule = {
@@ -166,83 +173,6 @@ export class IndentedTreeParser {
                 throw error;
             }
             throw new ParserError('Failed to parse rules', { originalError: error });
-        }
-    }
-
-    public evaluateRule(rule: Rule, context: Context): number {
-        try {
-            if (!this.evaluateConditions(rule.conditions, context)) {
-                return 0;
-            }
-
-            const expression = this.substituteVariables(rule.calculation.expression, context);
-            return this.evaluateExpression(expression);
-        } catch (error) {
-            throw new ParserError('Failed to evaluate rule', { 
-                rule,
-                context,
-                originalError: error
-            });
-        }
-    }
-
-    private evaluateConditions(conditions: Condition[], context: Context): boolean {
-        return conditions.every(condition => this.evaluateCondition(condition, context));
-    }
-
-    private evaluateCondition(condition: Condition, context: Context): boolean {
-        const leftValue = context[condition.field];
-        if (leftValue === undefined) {
-            throw new ParserError(`Missing required field '${condition.field}' in context`);
-        }
-
-        const rightValue = typeof condition.value === 'string' && context[condition.value] !== undefined
-            ? context[condition.value]
-            : condition.value;
-
-        switch (condition.operator) {
-            case '==':
-                return leftValue === rightValue;
-            case '!=':
-                return leftValue !== rightValue;
-            case '>':
-                return leftValue > rightValue;
-            case '<':
-                return leftValue < rightValue;
-            case '>=':
-                return leftValue >= rightValue;
-            case '<=':
-                return leftValue <= rightValue;
-            case 'in':
-                if (Array.isArray(rightValue)) {
-                    return rightValue.includes(leftValue);
-                }
-                throw new ParserError(`Operator 'in' requires an array value`);
-            default:
-                throw new ParserError(`Invalid operator '${condition.operator}'`);
-        }
-    }
-
-    private substituteVariables(expression: string, context: Context): string {
-        return expression.replace(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g, match => {
-            const value = context[match];
-            if (value === undefined) {
-                throw new ParserError(`Missing required variable '${match}' in context`);
-            }
-            return String(value);
-        });
-    }
-
-    private evaluateExpression(expression: string): number {
-        try {
-            // In a real implementation, you'd want to use a proper expression evaluator
-            // This is a simplified version that only handles basic arithmetic
-            return Function(`return ${expression}`)();
-        } catch (error) {
-            throw new ParserError('Failed to evaluate expression', { 
-                expression,
-                originalError: error
-            });
         }
     }
 } 
