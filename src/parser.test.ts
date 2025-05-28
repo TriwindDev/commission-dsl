@@ -1,10 +1,10 @@
-import { IndentedTreeParser } from './parser';
+import { CommissionDslParser } from './parser';
 import { Context } from './types';
 import { ValidationError } from './validation';
 import { ParserError } from './parser';
 
-describe('IndentedTreeParser', () => {
-    const parser = new IndentedTreeParser();
+describe('CommissionDslParser', () => {
+    const parser = new CommissionDslParser();
 
     const sampleRule = `
 Basic Sales Commission (1)

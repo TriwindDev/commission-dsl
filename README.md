@@ -13,11 +13,11 @@ npm install
 The Commission DSL allows you to define rules for calculating sales commissions in a simple, indented tree format. Here's an example:
 
 ```typescript
-import { IndentedTreeParser } from './src/parser';
+import { CommissionDslParser } from './src/parser';
 import { RuleEvaluator } from './src/evaluator';
 
 // Create parser and evaluator instances
-const parser = new IndentedTreeParser();
+const parser = new CommissionDslParser();
 const evaluator = new RuleEvaluator();
 
 // Define a rule
@@ -53,7 +53,7 @@ console.log(commission2); // Output: 50
 
 The DSL is split into three main components:
 
-1. **Parser** (`IndentedTreeParser`): Handles parsing of rule text into structured data
+1. **Parser** (`CommissionDslParser`): Handles parsing of rule text into structured data
    - Converts text into Rule objects
    - Validates rule structure
    - Provides error handling for parsing issues

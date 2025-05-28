@@ -16,7 +16,7 @@ type CalculationLine = { type: 'calculation' } & Calculation;
 type NoteLine = { type: 'note'; note: string };
 type ParsedLine = RuleLine | SectionLine | ConditionLine | CalculationLine | NoteLine;
 
-export class IndentedTreeParser {
+export class CommissionDslParser {
     private static readonly whitespace = P.regexp(/\s*/);
     private static readonly newline = P.string('\n');
     private static readonly indent = P.regexp(/^[ ]{4}/).map(() => 1);
@@ -91,7 +91,7 @@ export class IndentedTreeParser {
 
     public parseRule(ruleText: string): Rule {
         try {
-            const lines = IndentedTreeParser.parser.parse(ruleText);
+            const lines = CommissionDslParser.parser.parse(ruleText);
             if (!lines.status) {
                 throw new ParserError(`Failed to parse rule: ${lines.expected.join(', ')}`);
             }
